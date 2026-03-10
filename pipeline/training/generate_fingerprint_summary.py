@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import pandas as pd
 
-TOP_DIR = "/media/zhenli/datadrive/valleyfevermutation/simulation_20ns_md/"
+TOP_DIR = "/media/datadrive/valleyfevermutation/simulation_20ns_md/"
 if 'simulation_20ns_md_beau' in TOP_DIR:
     ligand_name = 'Beauvericin'
 else:

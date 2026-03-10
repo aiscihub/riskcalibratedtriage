@@ -447,7 +447,7 @@ def main():
 
 if __name__ == "__main__":
     # Example usage
-    BASE_ROOT = Path("/media/zhenli/datadrive/valleyfevermutation/simulation_20ns_md_beau/")
+    BASE_ROOT = Path("/media/datadrive/valleyfevermutation/simulation_20ns_md_beau/")
 
     PROTEINS =  [ #"AFR1", "ATRF_ASPFU",
                   #"CDR1_CANAR", "CDR2_CANAL", "CDR1_CANAR_auris",

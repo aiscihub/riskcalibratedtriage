@@ -107,7 +107,7 @@ def extract_aligned_ca_coords(u, sel_str, start_idx, end_idx):
     return np.stack(coords, axis=0)
 
 def run_timescale_fingerprints_ca_only(
-        root="/media/zhenli/datadrive/valleyfevermutation/simulation_20ns_md/",
+        root="/media/datadrive/valleyfevermutation/simulation_20ns_md/",
         ligand_name='Milbemycin'
 ):
     """Generate CA-only fingerprints for multiple timescales efficiently.
@@ -360,7 +360,7 @@ def run_timescale_fingerprints_ca_only(
 
 if __name__ == "__main__":
     run_timescale_fingerprints_ca_only(
-       root="/media/zhenli/datadrive/valleyfevermutation/simulation_20ns_md_beau/",
+       root="/media/datadrive/valleyfevermutation/simulation_20ns_md_beau/",
        ligand_name='Beauvericin'
     )
     # Run with: python -m pipeline.training.generate_timescale_fingerprints_ca_only
