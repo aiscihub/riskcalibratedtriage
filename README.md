@@ -16,7 +16,8 @@ A calibrated threshold is selected to satisfy a user-defined FPR budget, turning
 This framing is suited for real screening workflows where risk must be controlled explicitly.
 
 <img src="resources/system_diagram.png" width="600" alt="System diagram"/>
-*Risk-controlled early-termination decision policy. Left: offline learning of a probabilistic instability score and calibration of a decision threshold under a chosen FPR constraint. Right: application of the calibrated policy to unseen complexes using only early-time trajectory information; achieved FPR under protein-level holdout is reported as deployment-relevant screening risk.*
+
+Risk-controlled early-termination decision policy. Left: offline learning of a probabilistic instability score and calibration of a decision threshold under a chosen FPR constraint. Right: application of the calibrated policy to unseen complexes using only early-time trajectory information; achieved FPR under protein-level holdout is reported as deployment-relevant screening risk.*
 
 ## Project layout
 
