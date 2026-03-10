@@ -1,4 +1,4 @@
-# riskcontroltriage
+# Risk-Controlled Early-Termination Policy for Molecular Dynamics Screening of Antifungal Resistance-Mediating ABC Transporter Pockets
 
 This repository implements a training and evaluation workflow to study whether **short molecular dynamics (MD) windows** carry enough mechanistic signal to support **early termination decisions** under an explicitly controlled **false positive rate (FPR) budget**. Rather than treating early MD analysis as a purely predictive task, the pipeline converts model outputs into an operational screening policy calibrated to a user-specified risk threshold.
 
@@ -15,7 +15,8 @@ A calibrated threshold is selected to satisfy a user-defined FPR budget, turning
 
 This framing is suited for real screening workflows where risk must be controlled explicitly.
 
----
+![System diagram](resources/system_diagram.png)
+*Risk-controlled early-termination decision policy. Left: offline learning of a probabilistic instability score and calibration of a decision threshold under a chosen FPR constraint. Right: application of the calibrated policy to unseen complexes using only early-time trajectory information; achieved FPR under protein-level holdout is reported as deployment-relevant screening risk.*
 
 ## Project layout
 
@@ -32,7 +33,16 @@ riskcontroltriage/
         └── outputs/
 ```
 
----
+## Dataset
+
+The primary cohort dataset is:
+
+```
+pipeline/training/outputs/fingerprint_summary_with_components_even_ac_4d_drift_20260213.csv
+```
+
+This file contains the mechanistic fingerprint summary for the full cohort used in manuscript experiments. The filename encodes key dataset properties. This file serves as the primary input to the training and ablation pipeline. It is referenced by the figure generation and ablation table scripts.
+
 
 ## Main scripts
 
