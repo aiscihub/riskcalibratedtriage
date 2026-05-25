@@ -1,4 +1,4 @@
-# Risk-Controlled Early-Termination Policy for Molecular Dynamics Screening of Antifungal Resistance-Mediating ABC Transporter Pockets
+# Risk-Calibrated Early-Termination for MD Screening
 
 This repository implements a training and evaluation workflow to study whether **short molecular dynamics (MD) windows** carry enough mechanistic signal to support **early termination decisions** under an explicitly controlled **false positive rate (FPR) budget**. Rather than treating early MD analysis as a purely predictive task, the pipeline converts model outputs into an operational screening policy calibrated to a user-specified risk threshold.
 
