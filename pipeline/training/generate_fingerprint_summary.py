@@ -1,124 +1,159 @@
-import os
-import glob
+#!/usr/bin/env python3
+"""Build a model-ready fingerprint summary CSV from local MD outputs."""
+
+import argparse
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-TOP_DIR = "/media/datadrive/valleyfevermutation/simulation_20ns_md/"
-if 'simulation_20ns_md_beau' in TOP_DIR:
-    ligand_name = 'Beauvericin'
-else:
-    ligand_name = 'Milbemycin'
 
-
-# === FEATURE NAME MAP (Fingerprint index → feature name) ===
 FEATURE_NAMES = [
     "slope",
     "rmsd_var",
     "mean_disp",
     "var_disp",
-    
-    # "f_simple",
-    # "f_hbond",
-    # "f_residue"
 ]
 
-rows = []
 
-def load_fingerprints(fp_dir):
-    paths = sorted(glob.glob(os.path.join(fp_dir, "fingerprint_*ns.npy")))
+def load_fingerprints(fp_dir: Path) -> dict[str, np.ndarray] | None:
+    paths = sorted(fp_dir.glob("fingerprint_*ns.npy"))
     if not paths:
         return None
 
-    fps = {
-        os.path.basename(p).split("_")[-1].replace("ns.npy", ""): np.load(p)
-        for p in paths
-    }
-    return fps
-
-# ---- Load 20-ns labels ----
-label_file = "label_drift_20ns.csv"
-labels_df = pd.read_csv(label_file)
-
-labels_key = {}
-for _, r in labels_df.iterrows():
-    key = (r['protein'], r['ligand_name'],r['pocket_id'], r['replica'])
-    labels_key[key] = {
-        "rmsd_20ns": r['rmsd_late_20ns'],
-        "f_contact_20ns": r['f_contact_20ns'],
-        "ligand_drift":r['drift'],
-        "label_unstable": r['label_unstable'],
+    return {
+        path.name.split("_")[-1].replace("ns.npy", ""): np.load(path)
+        for path in paths
     }
 
-# ---- Scan proteins and pockets ----
-protein_dirs = sorted(glob.glob(os.path.join(TOP_DIR, "*")))
 
-for protein_path in protein_dirs:
-    protein = os.path.basename(protein_path)
-    pocket_dirs = sorted(glob.glob(os.path.join(protein_path, "simulation_explicit", "pocket*")))
-
-    for pocket_path in pocket_dirs:
-        pocket = os.path.basename(pocket_path)
-        replica = "replica_1"
-        fp_dir = os.path.join(pocket_path, replica, "fingerprints_ca_4")
-
-        if not os.path.isdir(fp_dir):
-            continue
-
-        fps = load_fingerprints(fp_dir)
-        if fps is None:
-            continue
-
-        label_info = labels_key.get((protein, ligand_name, pocket, replica), {
-            "rmsd_20ns": np.nan,
-            "ligand_drift": np.nan,
-            "label_unstable": np.nan
-        })
-
-        for t in sorted(fps.keys(), key=lambda x: float(x)):
-            vec = fps[t]
-
-            row = {
-                "protein": protein,
-                "ligand_name" : ligand_name,
-                "pocket": pocket,
-                "replica": replica,
-                "time_ns": float(t),
-                "mean": float(vec.mean()),
-                "std": float(vec.std()),
-                "n_features": 4,
-                "rmsd_20ns": label_info["rmsd_20ns"],
-                "ligand_drift": label_info["ligand_drift"],
-                "f_contact_20ns" : label_info["f_contact_20ns"],
-                "label_unstable": label_info["label_unstable"]
-            }
-
-            # Add named features
-
-            # Fill missing features safely
-            for i, name in enumerate(FEATURE_NAMES):
-                if i < len(vec):
-                    row[name] = float(vec[i])
-                else:
-                    row[name] = np.nan
-
-            rows.append(row)
+def infer_ligand_name(root: Path) -> str:
+    root_text = str(root).lower()
+    if "beau" in root_text:
+        return "Beauvericin"
+    if "vera" in root_text:
+        return "Verapamil"
+    return "Milbemycin"
 
 
-# ---- Save final CSV ----
-df = pd.DataFrame(rows)
-file_name = "outputs/fingerprint_summary_with_components_even_ac_4d_drift_20260102.csv"
-df.to_csv(file_name, index=False)
+def build_fingerprint_summary(
+    top_dir: Path,
+    label_file: Path,
+    output: Path,
+    ligand_name: str,
+    fingerprint_dir_name: str = "fingerprints_ca_4",
+) -> pd.DataFrame:
+    labels_df = pd.read_csv(label_file)
 
-print(f"Saved {file_name}")
-#df = pd.read_csv("./outputs/fingerprint_summary_with_components_even_ac_4d_drift_20251223.csv")
+    labels_key = {}
+    for _, r in labels_df.iterrows():
+        key = (r["protein"], r["ligand_name"], r["pocket_id"], r["replica"])
+        labels_key[key] = {
+            "rmsd_20ns": r["rmsd_late_20ns"],
+            "f_contact_20ns": r.get("f_contact_20ns", np.nan),
+            "ligand_drift": r["drift"],
+            "label_unstable": r["label_unstable"],
+        }
 
-# feature_cols = FEATURE_NAMES.copy()
-# TIMESCALES = [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0]
-# for t in TIMESCALES:
-#     print(f"\n\n===== CORRELATIONS WITH std at {t} ns =====")
-#     sub = df[df["time_ns"] == t].dropna(subset=["std"])
-#
-#     corrs = {feat: sub[feat].corr(sub["std"]) for feat in feature_cols}
-#
-#     for feat, r in sorted(corrs.items(), key=lambda x: abs(x[1]), reverse=True):
-#         print(f"{feat:12s} : {r:+.3f}")
+    rows = []
+    for protein_path in sorted(path for path in top_dir.iterdir() if path.is_dir()):
+        protein = protein_path.name
+        pocket_dirs = sorted((protein_path / "simulation_explicit").glob("pocket*"))
+
+        for pocket_path in pocket_dirs:
+            pocket = pocket_path.name
+            replica = "replica_1"
+            fp_dir = pocket_path / replica / fingerprint_dir_name
+
+            if not fp_dir.is_dir():
+                continue
+
+            fps = load_fingerprints(fp_dir)
+            if fps is None:
+                continue
+
+            label_info = labels_key.get(
+                (protein, ligand_name, pocket, replica),
+                {
+                    "rmsd_20ns": np.nan,
+                    "ligand_drift": np.nan,
+                    "f_contact_20ns": np.nan,
+                    "label_unstable": np.nan,
+                },
+            )
+
+            for t in sorted(fps.keys(), key=float):
+                vec = np.asarray(fps[t], dtype=float)
+                row = {
+                    "protein": protein,
+                    "ligand_name": ligand_name,
+                    "pocket": pocket,
+                    "replica": replica,
+                    "time_ns": float(t),
+                    "mean": float(vec.mean()) if vec.size else np.nan,
+                    "std": float(vec.std()) if vec.size else np.nan,
+                    "n_features": len(FEATURE_NAMES),
+                    "rmsd_20ns": label_info["rmsd_20ns"],
+                    "ligand_drift": label_info["ligand_drift"],
+                    "f_contact_20ns": label_info["f_contact_20ns"],
+                    "label_unstable": label_info["label_unstable"],
+                }
+
+                for i, name in enumerate(FEATURE_NAMES):
+                    row[name] = float(vec[i]) if i < vec.size else np.nan
+
+                rows.append(row)
+
+    df = pd.DataFrame(rows)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(output, index=False)
+    return df
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Summarize per-horizon fingerprint .npy files into a CSV."
+    )
+    parser.add_argument(
+        "--top-dir",
+        type=Path,
+        required=True,
+        help="Simulation root containing protein/simulation_explicit/pocket*/replica_1.",
+    )
+    parser.add_argument(
+        "--labels",
+        type=Path,
+        default=Path("label_drift_20ns.csv"),
+        help="Endpoint label CSV.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("outputs/fingerprint_summary_with_components_even_ac_4d_drift.csv"),
+        help="Output summary CSV.",
+    )
+    parser.add_argument(
+        "--ligand-name",
+        default=None,
+        help="Ligand name used in labels and trajectory filenames. Defaults from --top-dir.",
+    )
+    parser.add_argument(
+        "--fingerprint-dir-name",
+        default="fingerprints_ca_4",
+        help="Fingerprint directory under each replica folder.",
+    )
+    args = parser.parse_args()
+
+    ligand_name = args.ligand_name or infer_ligand_name(args.top_dir)
+    df = build_fingerprint_summary(
+        top_dir=args.top_dir,
+        label_file=args.labels,
+        output=args.output,
+        ligand_name=ligand_name,
+        fingerprint_dir_name=args.fingerprint_dir_name,
+    )
+    print(f"Saved {args.output} ({len(df)} rows)")
+
+
+if __name__ == "__main__":
+    main()

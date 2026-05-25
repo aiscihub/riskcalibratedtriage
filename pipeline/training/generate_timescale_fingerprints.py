@@ -107,7 +107,7 @@ def extract_aligned_ca_coords(u, sel_str, start_idx, end_idx):
     return np.stack(coords, axis=0)
 
 def run_timescale_fingerprints_ca_only(
-        root="/media/datadrive/valleyfevermutation/simulation_20ns_md/",
+        root,
         ligand_name='Milbemycin'
 ):
     """Generate CA-only fingerprints for multiple timescales efficiently.
@@ -359,8 +359,24 @@ def run_timescale_fingerprints_ca_only(
 
 
 if __name__ == "__main__":
-    run_timescale_fingerprints_ca_only(
-       root="/media/datadrive/valleyfevermutation/simulation_20ns_md_beau/",
-       ligand_name='Beauvericin'
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Generate CA-only early-timescale fingerprints from local MD trajectories."
     )
-    # Run with: python -m pipeline.training.generate_timescale_fingerprints_ca_only
+    parser.add_argument(
+        "--root",
+        required=True,
+        help="Simulation root containing protein/simulation_explicit/pocket*/replica_1.",
+    )
+    parser.add_argument(
+        "--ligand-name",
+        default="Milbemycin",
+        help="Ligand name used in trajectory filenames.",
+    )
+    args = parser.parse_args()
+
+    run_timescale_fingerprints_ca_only(
+        root=args.root,
+        ligand_name=args.ligand_name,
+    )

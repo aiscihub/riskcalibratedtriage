@@ -226,7 +226,7 @@ def compute_ground_truth_labels(
     ligand_resname: str = "UNK",
     use_plip: bool = True,
     use_drift: bool = True,
-    ligand_name : str = 'Milbemycin'
+    ligand_name : str = 'Milbemycin',
 ) -> pd.DataFrame:
     """
     Compute ground truth labels for all pockets from 20ns data.
@@ -344,6 +344,9 @@ def compute_ground_truth_labels(
             if ligand_name == "Beauvericin":
                 F_CONTACT_CUTOFF = 0.15
                 RMSD_CUTOFF = 1.8
+            elif ligand_name == "Verapamil":
+                F_CONTACT_CUTOFF = 0.35
+                RMSD_CUTOFF = 2.5
             else:
                 F_CONTACT_CUTOFF = 0.35
                 RMSD_CUTOFF = 1.0
@@ -390,7 +393,7 @@ def compute_ground_truth_labels(
     log.info(f"  Range: [{df['rmsd_late_20ns'].min():.3f}, {df['rmsd_late_20ns'].max():.3f}]Å")
     
     # Save
-    new_ones = Path("label_drift_beau_20ns_20260221.csv")
+    new_ones = output_path
     df.to_csv(new_ones, index=False)
     log.info(f"\n✓ Saved to: {new_ones}")
     log.info(f"\n✓ You need to copy the new ones to: {output_path}")
@@ -401,7 +404,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description="Compute ground truth stability labels from 20ns data"
+        description="Compute ground truth stability labels from data"
     )
     parser.add_argument(
         "--base-root",
@@ -429,6 +432,12 @@ def main():
         help="Ligand residue name (default: UNK)"
     )
     parser.add_argument(
+        "--ligand-name",
+        type=str,
+        default="Milbemycin",
+        help="Ligand name used in trajectory filenames and output labels"
+    )
+    parser.add_argument(
         "--use-plip",
         action="store_true",
         help="Use PLIP results instead of MD trajectory for f_contact"
@@ -442,29 +451,9 @@ def main():
         output_path=args.output,
         ligand_resname=args.ligand_resname,
         use_plip=args.use_plip,
+        ligand_name=args.ligand_name,
     )
 
 
 if __name__ == "__main__":
-    # Example usage
-    BASE_ROOT = Path("/media/datadrive/valleyfevermutation/simulation_20ns_md_beau/")
-
-    PROTEINS =  [ #"AFR1", "ATRF_ASPFU",
-                  #"CDR1_CANAR", "CDR2_CANAL", "CDR1_CANAR_auris",
-        #"CIMG_00780","CIMG_00533", "CIMG_01418",
-                      "CIMG_00533", "CIMG_00780", "CIMG_06197", "CIMG_01418",  "CIMG_09093",
-                      "MDR1_CRYNH",
-        #"MDR1_TRIRC", "MDR2_TRIRC", "PDR5_YEAST",
-                     # "PDH1_CANGA",  "SNQ2_CANGA"
-    ]
-    #PROTEINS = ["AFR1"]
-    OUTPUT = Path("label_drift_beau_20ns_20260221.csv")
-    
-    compute_ground_truth_labels(
-        base_root=BASE_ROOT,
-        proteins=PROTEINS,
-        output_path=OUTPUT,
-        ligand_resname="UNK",
-        use_plip=True,  # Use PLIP for f_contact
-        ligand_name= "Beauvericin"
-    )
+    main()
