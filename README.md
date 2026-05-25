@@ -8,7 +8,7 @@ The project studies early molecular dynamics (MD) stopping as an operational tri
 
 The central deployment question is not simply whether endpoint instability can be predicted. It is whether a screening campaign can stop likely unstable complexes early while making false termination of endpoint-stable complexes explicit and auditable.
 
-<img src="resources/system_diagram.png" width="650" alt="Risk-calibrated MD triage system diagram"/>
+<img src="resources/system_diagram_white.png" width="650" alt="Risk-calibrated MD triage system diagram"/>
 
 ## Study Summary
 
@@ -33,7 +33,8 @@ riskcalibratedtriage/
 ├── README.md
 ├── acm_aj.tex
 ├── resources/
-│   └── system_diagram.png
+│   ├── system_diagram.png
+│   └── system_diagram_white.png
 └── pipeline/
     └── training/
         ├── compute_ground_truth_labels.py
