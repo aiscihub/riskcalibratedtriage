@@ -1,10 +1,10 @@
 # Risk-Calibrated Early-Termination for MD Screening
 
-This repository contains the reproducibility package for:
+This repository contains the reproducibility bundle for:
 
 **Feasibility of Risk-Calibrated Early-Termination for Molecular Dynamics Screening of Antifungal Resistance-Mediating ABC Transporter Pockets**
 
-The project studies early molecular dynamics (MD) stopping as an operational triage policy. Short trajectory prefixes are converted into compact structural fingerprints, a classifier estimates endpoint instability, and a threshold is calibrated on training proteins to satisfy a user-specified false positive rate (FPR) budget before deployment on held-out systems.
+The project studies early molecular dynamics (MD) stopping as a practical triage policy. Short trajectory prefixes are converted into compact structural fingerprints, a classifier estimates endpoint instability, and a threshold is calibrated on training proteins to satisfy a user-specified false positive rate (FPR) budget before deployment on held-out systems.
 
 The central deployment question is not simply whether endpoint instability can be predicted. It is whether a screening campaign can stop likely unstable complexes early while making false termination of endpoint-stable complexes explicit and auditable.
 
